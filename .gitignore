@@ -1,0 +1,8 @@
+/vendor/
+/composer.lock
+/apps/api/.env
+/apps/api/vendor/
+/apps/api/node_modules/
+/apps/api/public/build/
+
+.DS_Store

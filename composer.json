@@ -1,0 +1,9 @@
+{
+    "name": "family-fraud/monorepo",
+    "type": "project",
+    "description": "Monorepo root manifest for FamilyFraud SaaS platform.",
+    "scripts": {
+        "api:test": "cd apps/api && php artisan test",
+        "api:build": "cd apps/api && npm run build"
+    }
+}

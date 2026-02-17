@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    working_dir: /var/www/html/apps/api
+    volumes:
+      - ./:/var/www/html
+    environment:
+      APP_ENV: local
+      APP_DEBUG: 'true'
+      APP_URL: http://localhost
+    depends_on:
+      - mariadb
+      - redis
+
+  queue:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    working_dir: /var/www/html/apps/api
+    command: php artisan queue:work --tries=1 --timeout=90
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - app
+      - redis
+
+  reverb:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    working_dir: /var/www/html/apps/api
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - '8080:8080'
+    depends_on:
+      - app
+      - redis
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./:/var/www/html
+      - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - '80:80'
+    depends_on:
+      - app
+
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: family_fraud
+      MARIADB_USER: family_fraud
+      MARIADB_PASSWORD: secret
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      - '3306:3306'
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+
+volumes:
+  mariadb-data:
